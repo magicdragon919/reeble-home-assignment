@@ -14,7 +14,7 @@ export const Layout = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" color="default" elevation={1}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Toolbar disableGutters>
             <Link component={RouterLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none' }}>
               <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>

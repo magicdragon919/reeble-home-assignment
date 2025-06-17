@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
 import { UploadTemplateModal } from '../components/UploadTemplateModal';
 import {

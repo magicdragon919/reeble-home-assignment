@@ -19,8 +19,8 @@ const theme = createTheme({
       fontWeight: 700,
     },
     h2: {
-        fontSize: '1.75rem',
-        fontWeight: 700,
+      fontSize: '1.75rem',
+      fontWeight: 700,
     }
   },
   components: {
@@ -35,28 +35,28 @@ const theme = createTheme({
       },
     },
     MuiPaper: {
-        styleOverrides: {
-            root: {
-                borderRadius: 12,
-            }
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
         }
+      }
     },
     MuiCard: {
-        styleOverrides: {
-            root: {
-                borderRadius: 12,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-            }
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
         }
+      }
     },
     MuiTextField: {
-        styleOverrides: {
-            root: {
-                '& .MuiOutlinedInput-root': {
-                    borderRadius: 8,
-                }
-            }
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+          }
         }
+      }
     }
   },
 });

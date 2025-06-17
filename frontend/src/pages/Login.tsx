@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
 
 export const Login = () => {
