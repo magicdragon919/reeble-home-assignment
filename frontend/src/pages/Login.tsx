@@ -1,4 +1,3 @@
-// src/pages/Login.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,9 +10,6 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = location.state?.from?.pathname || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +17,8 @@ export const Login = () => {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      navigate('/dashboard');
+      window.location.reload();
     } catch (err) {
       setError('Failed to log in. Please check your credentials.');
     } finally {

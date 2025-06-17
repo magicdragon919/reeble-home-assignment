@@ -1,5 +1,5 @@
 # backend/app/crud.py
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
 from .security import get_password_hash
 
@@ -26,6 +26,12 @@ def create_template(db: Session, title: str, owner_id: int, anvil_template_eid: 
 def get_templates(db: Session):
     return db.query(models.PDFTemplate).all()
 
+def get_templates_by_user(db: Session, user_id: int):
+    return db.query(models.PDFTemplate).filter(models.PDFTemplate.owner_id == user_id).all()
+
+def get_submissions_by_user(db: Session, user_id: int):
+    return db.query(models.Submission).options(joinedload(models.Submission.template)).filter(models.Submission.buyer_id == user_id).all()
+
 def get_template(db: Session, template_id: int):
     return db.query(models.PDFTemplate).filter(models.PDFTemplate.anvil_template_eid == template_id).first()
 
@@ -42,5 +48,5 @@ def create_submission(db: Session, template_id: int, buyer_id: int, anvil_submis
     db.refresh(db_submission)
     return db_submission
 
-def get_latest_submission(db: Session, template_id: int):
+def get_latest_submission(db: Session, template_id: str):
     return db.query(models.Submission).filter(models.Submission.template_id == template_id).order_by(models.Submission.id.desc()).first()

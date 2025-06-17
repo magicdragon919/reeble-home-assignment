@@ -29,7 +29,7 @@ app = FastAPI(
 # Allows the React frontend (running on localhost:3000) to communicate with this API.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -106,9 +106,17 @@ async def upload_template(
     templateEid = response["createEtchPacket"]["eid"]
     return crud.create_template(db, "Test form", current_user.id, templateEid)
 
+@app.get("/api/templates", tags=["Agent"])
+def list_available_templates(
+    current_user: models.User = Depends(deps.agent_only),
+    db: Session = Depends(deps.get_db)
+):
+    """Agent-only endpoint to get a list of their templates."""
+    return crud.get_templates_by_user(db, current_user.id)
+
 # --- Buyer Flow ---
 
-@app.get("/api/templates", response_model=List[schemas.PDFTemplate], tags=["Buyer"])
+@app.get("/api/templates/available", response_model=List[schemas.PDFTemplate], tags=["Buyer"])
 def list_available_templates(
     _: models.User = Depends(deps.buyer_only),
     db: Session = Depends(deps.get_db)
@@ -138,7 +146,6 @@ def get_template_form_fields(
 
     return { "fields": fields }
 
-
 @app.post("/api/templates/{template_id}/submissions", status_code=201, tags=["Buyer"])
 def submit_filled_form(
     template_id: str,
@@ -164,10 +171,17 @@ def submit_filled_form(
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=f"Anvil API error: {str(e)}")
 
+@app.get("/api/submissions", tags=["Buyer"])
+def list_available_templates(
+    current_user: models.User = Depends(deps.buyer_only),
+    db: Session = Depends(deps.get_db)
+):
+    """Buyer-only endpoint to get a list of their submissions."""
+    return crud.get_submissions_by_user(db, current_user.id)
 
 # --- Admin Flow ---
 
-@app.get("/api/dashboard", response_model=List[schemas.AdminDashboardTemplate], tags=["Admin"])
+@app.get("/api/dashboard", tags=["Admin"])
 def get_admin_dashboard(
     _: models.User = Depends(deps.admin_only),
     db: Session = Depends(deps.get_db)
@@ -179,9 +193,7 @@ def get_admin_dashboard(
     templates = crud.get_templates(db)
     dashboard_data = []
     for t in templates:
-        latest_submission = crud.get_latest_submission(db, t.id)
-        # We use the AdminDashboardTemplate schema which includes nested owner and submission info
-        dashboard_item = schemas.AdminDashboardTemplate.from_orm(t)
-        dashboard_item.latest_submission = latest_submission
-        dashboard_data.append(dashboard_item)
+        latest_submission = crud.get_latest_submission(db, t.anvil_template_eid)
+        template_data = { "owner": t.owner, "template": t, "latest_submission": latest_submission }
+        dashboard_data.append(template_data)
     return dashboard_data
