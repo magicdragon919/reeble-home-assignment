@@ -32,6 +32,7 @@ class PDFTemplateBase(BaseModel):
 
 class PDFTemplate(PDFTemplateBase):
     id: int
+    title: str
     owner_id: int
     anvil_template_eid: str
     class Config:

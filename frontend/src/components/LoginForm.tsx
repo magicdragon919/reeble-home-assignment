@@ -16,7 +16,7 @@ const LoginForm: React.FC = () => {
       formData.append("username", username);
       formData.append("password", password);
 
-      const response = await axios.post('http://localhost:8000/token', 
+      const response = await axios.post('http://localhost:8000/api/token', 
         formData,
         {
           headers: {
