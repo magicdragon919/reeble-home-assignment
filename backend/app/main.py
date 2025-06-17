@@ -1,4 +1,3 @@
-import os, base64, json
 from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,19 +6,10 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from typing import List
 from python_anvil.api import Anvil
-from python_anvil.api_resources.mutations.create_etch_packet import CreateEtchPacket
-from python_anvil.api_resources.payload import (
-    EtchSigner,
-    SignerField,
-    DocumentUpload,
-    EtchCastRef,
-    SignatureField,
-    FillPDFPayload
-)
-import httpx
 
 from . import crud, models, schemas, deps, security
 from .database import engine, SessionLocal
+from .anvil_service import *
 
 # --- FastAPI App Initialization ---
 
@@ -44,21 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- Anvil GraphQL Configuration ---
-ANVIL_GRAPHQL_URL = "https://graphql.useanvil.com"
-ANVIL_API_KEY = os.getenv("ANVIL_API_KEY")
-ANVIL_ORG_EID = os.getenv("ANVIL_ORG_EID")
-
-# Anvil's GraphQL API uses Basic Authentication with your API key as the username.
-# We must Base64 encode it.
-if ANVIL_API_KEY:
-    ANVIL_AUTH_HEADER = {"Authorization": f"Basic {ANVIL_API_KEY}"}
-else:
-    print("Warning: ANVIL_API_KEY is not set. API calls to Anvil will fail.")
-    ANVIL_AUTH_HEADER = {}
-
-anvil = Anvil(api_key=ANVIL_API_KEY)
 
 @app.on_event("startup")
 def startup_event():
@@ -124,42 +99,9 @@ async def upload_template(
     Agent-only endpoint to upload a PDF, convert it to an Anvil template,
     and save its metadata to the database.
     """
-    fileContent = base64.b64encode(await file.read()).decode('utf-8')
+    file_content = await file.read()
 
-    packet = CreateEtchPacket(
-        name="Packet Name"
-    )
-    
-    fileID = "testID"
-    signatureID = "signatureID"
-
-    signer = EtchSigner(
-        name="Test",
-        email=current_user.email,
-        fields=[SignerField(
-            file_id=fileID,
-            field_id=signatureID,
-        )],
-    )
-
-    packet.add_signer(signer)
-
-    fileContent = DocumentUpload(
-        id=fileID,
-        title="Test form",
-        file={"filename": file.filename, "data": fileContent, "mimetype": file.content_type}, 
-        fields=[SignatureField(
-            id=signatureID,
-            type="signature",
-            page_num=0,
-            # The position and size of the field
-            rect=dict(x=100, y=100, width=100, height=100)
-        )]
-    )
-
-    packet.add_file(fileContent)
-
-    response = anvil.create_etch_packet(payload=packet)
+    response = create_etch_packet(file_content=file_content, current_user=current_user, file_name=file.filename, file_type=file.content_type)
     print(response)
     templateEid = response["createEtchPacket"]["eid"]
     return crud.create_template(db, "Test form", current_user.id, templateEid)
@@ -176,7 +118,7 @@ def list_available_templates(
 
 @app.get("/api/templates/{template_id}/fields", tags=["Buyer"])
 def get_template_form_fields(
-    template_id: int,
+    template_id: str,
     _: models.User = Depends(deps.buyer_only),
     db: Session = Depends(deps.get_db)
 ):
@@ -186,18 +128,20 @@ def get_template_form_fields(
     db_template = crud.get_template(db, template_id)
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
-    
+
     try:
-        # Get the fields from Anvil to dynamically build the form on the frontend
-        fields_response = anvil_client.get_template_fields(db_template.anvil_template_eid)
-        return fields_response
+        # Retrieve cast data from Anvil
+        cast_data = get_cast(anvil_template_eid=db_template.anvil_template_eid)
+        fields = cast_data.get("fieldInfo", {}).get("fields", [])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Anvil API error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Failed to fetch data from Anvil: {str(e)}")
+
+    return { "fields": fields }
 
 
 @app.post("/api/templates/{template_id}/submissions", status_code=201, tags=["Buyer"])
 def submit_filled_form(
-    template_id: int,
+    template_id: str,
     submission_data: dict,
     current_user: models.User = Depends(deps.buyer_only),
     db: Session = Depends(deps.get_db)
@@ -210,25 +154,15 @@ def submit_filled_form(
     if not db_template:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    try:
-        # 1. Submit data to Anvil to fill the PDF
-        fill_response = anvil_client.fill_pdf(
-            template_eid=db_template.anvil_template_eid,
-            data=submission_data,
-        )
-        
-        # 2. Save submission info to our DB
-        crud.create_submission(
-            db=db,
-            template_id=template_id,
-            buyer_id=current_user.id,
-            anvil_submission_eid=fill_response['submission_eid'],
-            filled_pdf_url=fill_response['download_url']
-        )
-        return {"message": "Submission successful!", "download_url": fill_response['download_url']}
+    fill_response = submit_filled_pdf(submission_data, db_template)
+    
+    response = create_etch_packet(file_content=fill_response, current_user=current_user)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Anvil API error: {str(e)}")
+    submission = crud.create_submission(db=db, template_id=template_id, buyer_id=current_user.id, anvil_submission_eid=response["createEtchPacket"]["eid"], filled_pdf_url=response["createEtchPacket"]["detailsURL"])
+    return {"message": "Submission successful!", "submission": submission }
+
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Anvil API error: {str(e)}")
 
 
 # --- Admin Flow ---

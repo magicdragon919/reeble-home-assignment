@@ -14,6 +14,12 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Checkbox,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  FormLabel,
+  InputAdornment,
 } from '@mui/material';
 
 export const BuyerDashboard = () => {
@@ -21,7 +27,7 @@ export const BuyerDashboard = () => {
   const [templates, setTemplates] = useState<PDFTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [fields, setFields] = useState<AnvilField[]>([]);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, any>>({});
 
   // State for managing loading and feedback
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
@@ -75,11 +81,11 @@ export const BuyerDashboard = () => {
 
   // Handler for updating form data as the user types
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = event.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
   };
 
   // Handler for submitting the filled form
@@ -91,14 +97,70 @@ export const BuyerDashboard = () => {
     try {
       const response = await apiClient.post(`/api/templates/${selectedTemplateId}/submissions`, formData);
       setFeedback({ message: `Submission successful! A download link would be available here: ${response.data.download_url}`, severity: 'success' });
-      // Optionally clear the form
-      // setFormData({});
     } catch (error) {
       setFeedback({ message: 'Submission failed. Please try again.', severity: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const renderField = (field: any) => {
+    const { id, name, type, pageNum } = field;
+    const value = formData[id] || '';
+
+    switch (type) {
+      case 'shortText': case 'fullName': case 'usAddress':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} />;
+      case 'longText': case 'textWrap':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} multiline rows={4} />;
+      case 'date':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="date" InputLabelProps={{ shrink: true }} />;
+      case 'email':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="email" />;
+      case 'phone':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="tel" />;
+      case 'number':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" />;
+      case 'dollar':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />;
+      case 'percent':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }} />;
+      case 'charList':
+        return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} inputProps={{ style: { letterSpacing: '0.5em', fontFamily: 'monospace' } }} />;
+      case 'checkbox':
+        return <FormControlLabel key={id} control={<Checkbox name={id} checked={!!value} onChange={handleInputChange} />} label={name} />;
+      case 'radioGroup':
+        return (
+          <FormControl key={id} component="fieldset" fullWidth={true}>
+            <FormLabel component="legend">{name}</FormLabel>
+            <RadioGroup row name={id} value={value} onChange={handleInputChange}>
+              <FormControlLabel value="option1" control={<Radio />} label="Option 1" />
+              <FormControlLabel value="option2" control={<Radio />} label="Option 2" />
+              <FormControlLabel value="option3" control={<Radio />} label="Option 3" />
+            </RadioGroup>
+          </FormControl>
+        );
+      // case 'imageFile':
+      //   return (
+      //     <Box key={id} sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+      //       <Typography variant="subtitle1" gutterBottom>{name}</Typography>
+      //       <Button variant="contained" component="label">
+      //         Upload File
+      //         <input name={id} type="file" hidden onChange={handleFileChange} />
+      //       </Button>
+      //       {value && <Typography variant="body2" sx={{ mt: 1 }}>{value.name}</Typography>}
+      //     </Box>
+      //   );
+      // case 'signature': case 'initial':
+      //   return (
+      //     <Box key={id} sx={{ border: '1px dashed grey', p: 4, my: 2, borderRadius: 1 }}>
+      //       <Typography align="center" color="textSecondary">{name} Area (Placeholder)</Typography>
+      //     </Box>
+      //   );
+      default:
+        return <TextField key={id} name={id} label={`${name} (type: ${type})`} value={value} fullWidth={true} onChange={handleInputChange} />;
+    }
+  }
 
   return (
     <Paper sx={{ p: 4 }}>
@@ -122,7 +184,7 @@ export const BuyerDashboard = () => {
             onChange={handleTemplateChange}
           >
             {templates.map((template) => (
-              <MenuItem key={template.id} value={template.id}>
+              <MenuItem key={template.anvil_template_eid} value={template.anvil_template_eid}>
                 {template.title}
               </MenuItem>
             ))}
@@ -139,17 +201,9 @@ export const BuyerDashboard = () => {
       {fields.length > 0 && !isLoadingForm && (
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           {fields.map((field) => (
-            <TextField
-              key={field.id}
-              name={field.id}
-              label={field.title}
-              type={field.type === 'number' ? 'number' : 'text'}
-              value={formData[field.id] || ''}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              margin="normal"
-            />
+            <Box key={field.id} sx={{ mb: 3 }}>
+              {renderField(field)}
+            </Box>
           ))}
           <Button
             type="submit"

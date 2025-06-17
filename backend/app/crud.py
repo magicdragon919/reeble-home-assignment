@@ -27,7 +27,7 @@ def get_templates(db: Session):
     return db.query(models.PDFTemplate).all()
 
 def get_template(db: Session, template_id: int):
-    return db.query(models.PDFTemplate).filter(models.PDFTemplate.id == template_id).first()
+    return db.query(models.PDFTemplate).filter(models.PDFTemplate.anvil_template_eid == template_id).first()
 
 # Submission Functions
 def create_submission(db: Session, template_id: int, buyer_id: int, anvil_submission_eid: str, filled_pdf_url: str):

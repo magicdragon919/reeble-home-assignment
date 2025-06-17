@@ -1,4 +1,5 @@
 export type UserRole = "Agent" | "Buyer" | "Admin";
+export type FieldType = "shortText" | "fullName" | "singerName" | "usAddress" | "longText" | "date" | "email" | "phone" | "number" | "dollar" | "percent" | "charList" | "checkbox" | "radioGroup" | "textWrap" ;
 
 export interface User {
   id: number;
@@ -26,6 +27,7 @@ export interface AdminDashboardData extends PDFTemplate {
 
 export interface AnvilField {
     id: string;
-    type: string;
-    title: string;
+    name: string;
+    pageNum: number;
+    type: FieldType;
 }
