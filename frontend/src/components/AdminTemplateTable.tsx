@@ -17,7 +17,7 @@ export const TemplateTable = ({ data }: any) => {
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Template Name</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Owner (Agent)</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Latest Submission By</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Latest Submission Created</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
               </TableRow>
             </TableHead>
@@ -27,16 +27,17 @@ export const TemplateTable = ({ data }: any) => {
                   <TableCell>{item.template.title}</TableCell>
                   <TableCell>{item.owner.email}</TableCell>
                   <TableCell>
-                    {item.latest_submission ? `User ID: ${item.latest_submission.buyer_id}` : 'N/A'}
+                    {item.latest_submission ? (new Date(item.latest_submission.created_at).toLocaleDateString()) : 'N/A'}
                   </TableCell>
                   <TableCell>
                     {item.latest_submission?.filled_pdf_url ? (
                       <Button
                         variant="outlined"
-                        startIcon={<VisibilityIcon />}
+                        startIcon={<VisibilityIcon htmlColor='#f73b20' />}
                         href={item.latest_submission.filled_pdf_url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        sx={{ color: '#f73b20', backgroundColor: '#f73b200d', border: 'none' }}
                       >
                         PDF
                       </Button>

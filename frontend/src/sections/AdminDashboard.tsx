@@ -34,7 +34,7 @@ export const AdminDashboard = () => {
 
   return (
     <Paper sx={{ p: 4 }}>
-      <Typography variant="h2" component="h1" gutterBottom>
+      <Typography variant="h2" component="h1" gutterBottom color='#f73b20'>
         Admin Dashboard
       </Typography>
       <TemplateTable data={data}/>

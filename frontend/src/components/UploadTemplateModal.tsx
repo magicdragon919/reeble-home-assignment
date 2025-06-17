@@ -86,7 +86,7 @@ export const UploadTemplateModal = ({ open, onClose, onUploadSuccess }: UploadTe
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={isLoading}>Cancel</Button>
+        <Button onClick={onClose} disabled={isLoading} sx={{ color: '#f73b20', backgroundColor: '#f73b200d', fontWeight: 'bold' }}>Cancel</Button>
       </DialogActions>
     </Dialog>
   );

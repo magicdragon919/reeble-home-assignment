@@ -9,7 +9,7 @@ const theme = createTheme({
       main: '#7e7deb',
     },
     background: {
-      default: '#f0f2f5', // Light grey background
+      default: '#f73b200d', // Light grey background
       paper: '#ffffff',
     },
   },
@@ -54,7 +54,24 @@ const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 8,
-          }
+            border: 'none',
+            '&.Mui-focused fieldset': {
+              border: '1px solid #f73b20',
+            }
+          },
+        }
+      }
+    },
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+            border: 'none',
+            '&.Mui-focused fieldset': {
+              border: '1px solid #f73b20',
+            }
+          },
         }
       }
     }

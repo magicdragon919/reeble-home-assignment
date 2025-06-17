@@ -17,14 +17,14 @@ export const Layout = () => {
         <Container maxWidth="xl">
           <Toolbar disableGutters>
             <Link component={RouterLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none' }}>
-              <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h5" color="primary" sx={{ fontWeight: 'bold', color: '#f73b20' }}>
                 Reeble
               </Typography>
             </Link>
 
             {isAuthenticated && user && (
               <Box>
-                <Button onClick={handleLogout} variant="outlined" sx={{ ml: 2 }}>
+                <Button onClick={handleLogout} variant="outlined" sx={{ ml: 2, backgroundColor: '#f73b200d', color: '#f73b20', border: 'none' }}>
                   Logout
                 </Button>
               </Box>

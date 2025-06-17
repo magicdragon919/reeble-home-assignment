@@ -49,13 +49,18 @@ export const BuyerDashboard = () => {
   return (
     <Paper sx={{ p: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h2" component="h1">Buyer Dashboard</Typography>
-        <Button variant="contained" size="large" onClick={() => setIsModalOpen(true)}>
+        <Typography variant="h2" component="h1" color='#f73b20'>Buyer Dashboard</Typography>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={() => setIsModalOpen(true)}
+          sx={{ color: '#fff', backgroundColor: '#f73b20f0' }}
+        >
           Fill New Form
         </Button>
       </Box>
 
-      <Typography variant="h4" gutterBottom>My Previous Submissions</Typography>
+      <Typography variant="h5" sx={{ fontWeight: 'bold' }}>My Previous Submissions</Typography>
 
       {isLoading ? (
         <CircularProgress />
@@ -68,9 +73,9 @@ export const BuyerDashboard = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Form Title</TableCell>
-                <TableCell>Date Submitted</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Form Title</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Date Submitted</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }} align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -87,7 +92,8 @@ export const BuyerDashboard = () => {
                         rel="noopener noreferrer"
                         variant="outlined"
                         size="small"
-                        startIcon={<VisibilityIcon />}
+                        startIcon={<VisibilityIcon htmlColor='#f73b20' />}
+                        sx={{color: '#f73b20', border: 'none', backgroundColor: '#f73b200d'}}
                       >
                         View
                       </Button>

@@ -159,8 +159,14 @@ export const CreateSubmissionModal = ({ open, onClose, onSubmitSuccess }: Create
         {feedback && <Alert severity={feedback.severity} sx={{ mt: 3 }}>{feedback.message}</Alert>}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" form="fill-form" variant="contained" disabled={isSubmitting || !selectedTemplateId || fields.length === 0}>
+        <Button onClick={onClose} disabled={isSubmitting} sx={{backgroundColor: '#f73b200d', color: '#f73b20'}}>Cancel</Button>
+        <Button 
+          type="submit" 
+          form="fill-form" 
+          variant="contained" 
+          disabled={isSubmitting || !selectedTemplateId || fields.length === 0}
+          sx={{ backgroundColor: '#f73b20f0'}}
+        >
           {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Form'}
         </Button>
       </DialogActions>

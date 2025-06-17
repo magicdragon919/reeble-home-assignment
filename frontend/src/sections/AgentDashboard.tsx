@@ -62,16 +62,16 @@ export const AgentDashboard = () => {
     <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%' }}>
       {/* --- HEADER --- */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" component="h1">
+        <Typography variant="h4" component="h1" sx={{ color: '#f73b20', fontWeight: 'bold' }}>
           Template Management
         </Typography>
-        <Button variant="contained" size="large" onClick={() => setIsModalOpen(true)}>
+        <Button variant="contained" size="large" onClick={() => setIsModalOpen(true)} sx={{ backgroundColor: '#f73b20', fontWeight: 'bold' }}>
           Upload New Template
         </Button>
       </Box>
 
       {/* --- TEMPLATES TABLE --- */}
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
         My Uploaded Templates
       </Typography>
 
@@ -114,11 +114,11 @@ export const AgentDashboard = () => {
                     <TableCell>{new Date(template.created_at).toLocaleDateString()}</TableCell>
                     <TableCell align="right">
                       <IconButton aria-label="view" color="primary">
-                        <VisibilityIcon />
+                        <VisibilityIcon htmlColor='#f73b20'/>
                       </IconButton>
-                      <IconButton aria-label="delete" color="error" onClick={() => handleDeleteTemplate(template.id)}>
+                      {/* <IconButton aria-label="delete" color="error" onClick={() => handleDeleteTemplate(template.id)}>
                         <DeleteIcon />
-                      </IconButton>
+                      </IconButton> */}
                     </TableCell>
                   </TableRow>
                 ))

@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress, InputAdornment, IconButton } from '@mui/material';
+import { Email as EmailIcon, Lock as LockIcon, Visibility, VisibilityOff, Language as LanguageIcon, Cookie as CookieIcon, Lock, LockOutline, EmailOutlined, } from '@mui/icons-material'
 
 export const Login = () => {
   const [email, setEmail] = useState('agent@test.io');
   const [password, setPassword] = useState('password123');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const handleMouseDownPassword = (event: any) => event.preventDefault();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,19 +48,27 @@ export const Login = () => {
             autoComplete="email"
             autoFocus
             value={email}
+            InputProps={{ disableUnderline: true, sx: { borderRadius: '8px', bgcolor: '#fff6f5' }, 
+              startAdornment: (<InputAdornment position='start'><EmailOutlined></EmailOutlined></InputAdornment>)
+            }}
             onChange={e => setEmail(e.target.value)}
           />
           <TextField
-            margin="normal"
-            required
             fullWidth
+            required
+            margin="normal"
             name="password"
             label="Password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="current-password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
+            variant="outlined"
+            InputProps={{ disableUnderline: true, sx: { borderRadius: '8px', bgcolor: '#fff6f5' }, 
+              endAdornment: (<InputAdornment position="end"><IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>), 
+              startAdornment: (<InputAdornment position='start'><LockOutline></LockOutline></InputAdornment>)
+            }}
+            sx={{ mb: 1 }}
+            onChange={e => setPassword(e.target.value)} 
           />
           {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
           <Button
@@ -63,7 +76,7 @@ export const Login = () => {
             fullWidth
             variant="contained"
             disabled={isLoading}
-            sx={{ mt: 3, mb: 2, py: 1.5 }}
+            sx={{ mt: 3, mb: 2, py: 1.5, backgroundColor: "#f73b20" }}
           >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
           </Button>
