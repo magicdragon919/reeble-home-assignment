@@ -39,6 +39,7 @@ export const UploadTemplateModal = ({ open, onClose, onUploadSuccess }: UploadTe
       // We can add a slight delay before closing to allow user to see the success message
       setTimeout(() => {
         onClose();
+        setFeedback('');
       }, 1500);
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'An error occurred.';

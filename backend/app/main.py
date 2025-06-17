@@ -2,14 +2,17 @@ from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from typing import List
-from python_anvil.api import Anvil
+
+import io
 
 from . import crud, models, schemas, deps, security
 from .database import engine, SessionLocal
 from .anvil_service import *
+from .graphql_service import *
 
 # --- FastAPI App Initialization ---
 
@@ -101,10 +104,10 @@ async def upload_template(
     """
     file_content = await file.read()
 
-    response = create_etch_packet(file_content=file_content, current_user=current_user, file_name=file.filename, file_type=file.content_type)
-    print(response)
-    templateEid = response["createEtchPacket"]["eid"]
-    return crud.create_template(db, "Test form", current_user.id, templateEid)
+    response = create_cast(file_content=file_content, filename=file.filename)
+    print(response["data"]["createCast"]["eid"])
+    castEid = response["data"]["createCast"]["eid"]
+    return crud.create_template(db, "Test form", current_user.id, castEid)
 
 @app.get("/api/templates", tags=["Agent"])
 def list_available_templates(
@@ -113,6 +116,8 @@ def list_available_templates(
 ):
     """Agent-only endpoint to get a list of their templates."""
     return crud.get_templates_by_user(db, current_user.id)
+
+
 
 # --- Buyer Flow ---
 
@@ -179,6 +184,8 @@ def list_available_templates(
     """Buyer-only endpoint to get a list of their submissions."""
     return crud.get_submissions_by_user(db, current_user.id)
 
+
+
 # --- Admin Flow ---
 
 @app.get("/api/dashboard", tags=["Admin"])
@@ -197,3 +204,43 @@ def get_admin_dashboard(
         template_data = { "owner": t.owner, "template": t, "latest_submission": latest_submission }
         dashboard_data.append(template_data)
     return dashboard_data
+
+@app.get("/api/submissions/{submission_id}/download")
+async def download_submission_pdf(
+    submission_id: str,
+    current_user: models.User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db)
+):
+    """
+    Download the filled PDF for a given submission.
+    
+    This endpoint is accessible by:
+    1. The Buyer who created the submission.
+    2. The Agent who owns the parent template.
+    3. Any user with the Admin role.
+    """
+
+    submission = crud.get_submission_by_id(db=db, submission_id=submission_id)
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    template = crud.get_template(db, template_id=submission.template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Associated template not found")
+    
+    is_buyer = submission.buyer_id == current_user.id
+    is_owner = template.owner_id == current_user.id
+    is_admin = current_user.role == "Admin"
+
+    if not (is_buyer or is_owner or is_admin):
+        raise HTTPException(status_code=403, detail="You are not authorized to download this file")
+
+    pdf_bytes = download_filled_pdf(weld_data_eid=submission.anvil_submission_eid)
+
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=submission_{submission_id}.pdf"
+        }
+    )
