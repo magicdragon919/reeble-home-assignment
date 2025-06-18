@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from passlib.context import CryptContext
-from jose import JWTError, jwt
+from jose import jwt
 
 # Secret key to sign the JWT token.
 # In a production app, load this from environment variables and keep it secret!

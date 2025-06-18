@@ -5,7 +5,6 @@ import {
   Paper, Typography, Box, Button, CircularProgress,
   Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // Define a type for our template data, assuming it has these fields from the API
@@ -48,14 +47,6 @@ export const AgentDashboard = () => {
   // Callback function for the modal to trigger a data refresh after a successful upload
   const handleUploadSuccess = () => {
     fetchTemplates();
-  };
-
-  // Placeholder for a delete action
-  const handleDeleteTemplate = (templateId: string) => {
-    // Here you would add the logic to call your API endpoint to delete the template
-    // For example: await apiClient.delete(`/api/templates/${templateId}`);
-    // And then refresh the list: fetchTemplates();
-    alert(`(Placeholder) Delete template with ID: ${templateId}`);
   };
 
   return (
