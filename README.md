@@ -33,9 +33,11 @@ This project consists of a frontend and backend application. Follow the instruct
    pip install -r requirements.txt
    ```
 
-4. Start the FastAPI server:
+4. Copy the .env.example file to .env and replace the environment variables.
+
+5. Start the FastAPI server:
    ```bash
-   uvicorn main:app --reload
+   uvicorn app.main:app --reload
    ```
 
 The backend server should now be running on `http://localhost:8000` with API documentation available at `http://localhost:8000/docs`.
@@ -51,10 +53,11 @@ The backend server should now be running on `http://localhost:8000` with API doc
    ```bash
    npm install
    ```
+3. Copy the .env.example file to .env and replace the environment variables.
 
-3. Start the frontend development server:
+4. Start the frontend development server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 The frontend application should now be running on `http://localhost:5173` and automatically open in your default browser.
