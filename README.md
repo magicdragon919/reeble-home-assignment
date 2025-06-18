@@ -10,7 +10,73 @@ This project consists of a frontend and backend application. Follow the instruct
 - npm or yarn
 - Git
 
-## Installation
+## Quick Start with Docker (Recommended)
+
+The easiest way to run the project is using Docker and Docker Compose.
+
+### Prerequisites for Docker
+- Docker installed on your system
+- Docker Compose installed on your system
+- Anvil API key (optional, for full functionality)
+
+### Running with Docker
+
+1. **Clone the repository** (if you haven't already):
+   ```bash
+   git clone <repository-url>
+   cd reeble_assignment
+   ```
+
+2. **Set up environment variables** (optional):
+   Create a `.env` file in the root directory:
+   ```bash
+   ANVIL_API_KEY=your-anvil-api-key-here
+   ```
+
+3. **Build and run the application**:
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+### Docker Commands
+
+```bash
+# Start the application
+docker-compose up
+
+# Start in background
+docker-compose up -d
+
+# Stop the application
+docker-compose down
+
+# Rebuild containers
+docker-compose up --build
+
+# View logs
+docker-compose logs
+
+# Clean up everything
+docker-compose down -v --rmi all
+```
+
+### Default Users (Created Automatically)
+- **Agent**: agent@test.io / password123
+- **Buyer**: buyer@test.io / password123
+- **Admin**: admin@test.io / password123
+
+**Note**: Change these passwords in production!
+
+For detailed Docker documentation, see [DOCKER_README.md](./DOCKER_README.md).
+
+## Installation (Manual Setup)
+
+If you prefer to run the application without Docker, follow these manual setup instructions.
 
 ### Backend Setup (FastAPI)
 
@@ -76,7 +142,7 @@ For more detailed information, refer to the documentation in the frontend and ba
 ### MVP Version (Priority Features)
 
 #### Backend Essentials
-- [ ] JWT Authentication
+- [x] JWT Authentication
   > Basic user authentication and authorization
 - [ ] File upload validation
   > Secure file upload with size and type checks
@@ -134,7 +200,7 @@ For more detailed information, refer to the documentation in the frontend and ba
   > Basic functionality without internet
 
 #### Infrastructure
-- [ ] Docker setup
+- [x] Docker setup
   > Consistent environments
 - [ ] CI/CD pipeline
   > Automated deployment
