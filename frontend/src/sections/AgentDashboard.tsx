@@ -2,10 +2,19 @@ import { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
 import { UploadTemplateModal } from '../components/UploadTemplateModal';
 import {
-  Paper, Typography, Box, Button, CircularProgress,
-  Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
+  Paper, Typography, Box, Button, 
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
+  IconButton, useTheme, useMediaQuery,
+  Card, CardContent, CardActions, Stack
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { 
+  Visibility as VisibilityIcon,
+  Upload as UploadIcon,
+  Description as DescriptionIcon
+} from '@mui/icons-material';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorFeedback } from '../components/ErrorFeedback';
+import { ResponsiveContainer } from '../components/ResponsiveContainer';
 
 // Define a type for our template data, assuming it has these fields from the API
 interface Template {
@@ -24,6 +33,10 @@ export const AgentDashboard = () => {
   // State to control the upload modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
   // Fetches the list of templates from the backend
   const fetchTemplates = async () => {
     setIsFetching(true);
@@ -33,7 +46,6 @@ export const AgentDashboard = () => {
       setTemplates(response.data);
     } catch (error) {
       setFetchError('Failed to load templates. Please try refreshing the page.');
-      console.error(error);
     } finally {
       setIsFetching(false);
     }
@@ -49,82 +61,176 @@ export const AgentDashboard = () => {
     fetchTemplates();
   };
 
-  return (
-    <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, width: '100%' }}>
-      {/* --- HEADER --- */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" component="h1" sx={{ color: '#f73b20', fontWeight: 'bold' }}>
-          Template Management
-        </Typography>
-        <Button variant="contained" size="large" onClick={() => setIsModalOpen(true)} sx={{ backgroundColor: '#f73b20', fontWeight: 'bold' }}>
-          Upload New Template
-        </Button>
-      </Box>
-
-      {/* --- TEMPLATES TABLE --- */}
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-        My Uploaded Templates
-      </Typography>
-
-      {/* Handle Loading and Error States */}
-      {isFetching ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
+  const renderTemplatesList = () => {
+    if (isFetching) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ color: '#f73b20' }}>Loading...</Box>
         </Box>
-      ) : fetchError ? (
-        <Alert severity="error" sx={{ mt: 2 }}>{fetchError}</Alert>
-      ) : (
-        <TableContainer component={Paper} sx={{ mt: 2 }}>
-          <Table aria-label="templates table">
-            {/* Table Header */}
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Template Title</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Date Uploaded</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            {/* Table Body */}
-            <TableBody>
-              {templates.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    No templates found. Upload your first one!
-                  </TableCell>
-                </TableRow>
-              ) : (
-                templates.map((template) => (
-                  <TableRow
-                    key={template.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    hover
-                  >
-                    <TableCell component="th" scope="row">
-                      {template.title}
-                    </TableCell>
-                    <TableCell>{new Date(template.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell align="right">
-                      <IconButton aria-label="view" color="primary">
-                        <VisibilityIcon htmlColor='#f73b20'/>
-                      </IconButton>
-                      {/* <IconButton aria-label="delete" color="error" onClick={() => handleDeleteTemplate(template.id)}>
-                        <DeleteIcon />
-                      </IconButton> */}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      );
+    }
 
-      {/* --- RENDER THE UPLOAD MODAL --- */}
-      <UploadTemplateModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onUploadSuccess={handleUploadSuccess}
-      />
-    </Paper>
+    if (fetchError) {
+      return <ErrorFeedback error={fetchError} />;
+    }
+
+    if (templates.length === 0) {
+      return (
+        <EmptyState
+          title="No Templates Yet"
+          description="Start by uploading your first template."
+          icon={<DescriptionIcon sx={{ color: '#f73b20' }} />}
+          action={{
+            label: "Upload Template",
+            onClick: () => setIsModalOpen(true)
+          }}
+        />
+      );
+    }
+
+    if (isMobile || isTablet) {
+      return (
+        <Stack spacing={2}>
+          {templates.map((template) => (
+            <Card key={template.id}>
+              <CardContent>
+                <Typography variant="h6" component="div" noWrap>
+                  {template.title}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 1 }}>
+                  {new Date(template.created_at).toLocaleDateString()}
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<VisibilityIcon htmlColor="#f73b20" />}
+                  sx={{ 
+                    color: '#f73b20', 
+                    border: 'none', 
+                    backgroundColor: '#f73b200d',
+                    '&:hover': {
+                      backgroundColor: '#f73b201a',
+                      border: 'none'
+                    }
+                  }}
+                >
+                  View Template
+                </Button>
+              </CardActions>
+            </Card>
+          ))}
+        </Stack>
+      );
+    }
+
+    return (
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table aria-label="templates table">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>Template Title</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Date Uploaded</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {templates.map((template) => (
+              <TableRow
+                key={template.id}
+                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                hover
+              >
+                <TableCell component="th" scope="row">
+                  {template.title}
+                </TableCell>
+                <TableCell>
+                  {new Date(template.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton 
+                    aria-label="view template"
+                    sx={{ 
+                      color: '#f73b20',
+                      '&:hover': {
+                        backgroundColor: '#f73b200d'
+                      }
+                    }}
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+
+  return (
+    <ResponsiveContainer size="large">
+      <Paper sx={{ 
+        p: { xs: 2, sm: 3, md: 4 },
+        borderRadius: { xs: 0, sm: 2 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: { xs: 2, sm: 0 },
+          mb: 3 
+        }}>
+          <Typography 
+            variant="h2" 
+            component="h1"
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+              color: '#f73b20',
+              fontWeight: 'bold'
+            }}
+          >
+            Template Management
+          </Typography>
+          <Button
+            variant="contained"
+            size={isMobile ? 'large' : 'medium'}
+            onClick={() => setIsModalOpen(true)}
+            startIcon={<UploadIcon />}
+            fullWidth={isMobile}
+            sx={{ 
+              backgroundColor: '#f73b20f0',
+              color: '#fff',
+              '&:hover': {
+                backgroundColor: '#f73b20'
+              }
+            }}
+          >
+            Upload New Template
+          </Button>
+        </Box>
+
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            fontWeight: 'bold',
+            mb: 2,
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }
+          }}
+        >
+          My Uploaded Templates
+        </Typography>
+
+        {renderTemplatesList()}
+
+        <UploadTemplateModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onUploadSuccess={handleUploadSuccess}
+        />
+      </Paper>
+    </ResponsiveContainer>
   );
 };

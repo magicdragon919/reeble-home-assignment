@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Box, TextField, Button, Typography, Paper, Alert, CircularProgress, InputAdornment, IconButton } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, CircularProgress, InputAdornment, IconButton } from '@mui/material';
 import { Email as EmailIcon, Lock as LockIcon, Visibility, VisibilityOff, Language as LanguageIcon, Cookie as CookieIcon, Lock, LockOutline, EmailOutlined, } from '@mui/icons-material'
+import { ErrorFeedback } from '../components/ErrorFeedback';
 
 export const Login = () => {
   const [email, setEmail] = useState('agent@test.io');
@@ -70,7 +71,7 @@ export const Login = () => {
             sx={{ mb: 1 }}
             onChange={e => setPassword(e.target.value)} 
           />
-          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+          <ErrorFeedback error={error} title="Login Failed" />
           <Button
             type="submit"
             fullWidth
