@@ -141,7 +141,7 @@ export const CreateSubmissionModal = ({ open, onClose, onSubmitSuccess }: Create
           <FormControl fullWidth margin="normal">
             <InputLabel id="template-select-label">Select a Form</InputLabel>
             <Select labelId="template-select-label" value={selectedTemplateId} label="Select a Form" onChange={handleTemplateChange}>
-              {templates.map((template) => (<MenuItem key={template.anvil_template_eid} value={template.anvil_template_eid}>{template.title}</MenuItem>))}
+              {Array.isArray(templates) && templates.map((template) => (<MenuItem key={template.anvil_template_eid} value={template.anvil_template_eid}>{template.title}</MenuItem>))}
             </Select>
           </FormControl>
         )}

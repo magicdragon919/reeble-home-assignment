@@ -118,7 +118,7 @@ export const BuyerDashboard = () => {
     if (isMobile || isTablet) {
       return (
         <Stack spacing={2}>
-          {submissions.map((sub) => (
+          {Array.isArray(submissions) && submissions.map((sub) => (
             <Card key={sub.id}>
               <CardContent>
                 <Typography variant="h6" component="div" noWrap>
@@ -171,7 +171,7 @@ export const BuyerDashboard = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {submissions.map((sub) => (
+            {Array.isArray(submissions) && submissions?.map((sub) => (
               <TableRow key={sub.id}>
                 <TableCell>{sub.template.title}</TableCell>
                 <TableCell>{new Date(sub.created_at).toLocaleDateString()}</TableCell>

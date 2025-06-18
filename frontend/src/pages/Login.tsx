@@ -6,8 +6,8 @@ import { Email as EmailIcon, Lock as LockIcon, Visibility, VisibilityOff, Langua
 import { ErrorFeedback } from '../components/ErrorFeedback';
 
 export const Login = () => {
-  const [email, setEmail] = useState('agent@test.io');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,6 @@ export const Login = () => {
     try {
       await login(email, password);
       navigate('/dashboard');
-      window.location.reload();
     } catch (err) {
       setError('Failed to log in. Please check your credentials.');
     } finally {

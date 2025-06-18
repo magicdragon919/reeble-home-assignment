@@ -27,8 +27,10 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await apiClient.get<DashboardData[]>('/api/dashboard');
-        setData(response.data);
+        const response = await apiClient.get('/api/dashboard');
+        // Handle the nested data structure
+        const dashboardData = response.data?.data || response.data || [];
+        setData(dashboardData);
       } catch (err) {
         setError('Failed to fetch dashboard data. Please try again later.');
       } finally {

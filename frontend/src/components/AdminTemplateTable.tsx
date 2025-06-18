@@ -29,8 +29,15 @@ interface DashboardItem {
   latest_submission?: Submission;
 }
 
+interface DashboardData {
+  templates?: DashboardItem[];
+  data?: {
+    templates?: DashboardItem[];
+  };
+}
+
 interface TemplateTableProps {
-  data: DashboardItem[];
+  data: DashboardData | DashboardItem[];
 }
 
 export const TemplateTable = ({ data }: TemplateTableProps) => {
@@ -39,6 +46,12 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Ensure data is an array of DashboardItems
+  const items: DashboardItem[] = Array.isArray(data) ? data :
+                                Array.isArray(data?.templates) ? data.templates :
+                                Array.isArray(data?.data?.templates) ? data.data.templates :
+                                [];
 
   const handleDownloadPdf = async (submission_id: string) => {
     setLoadingPdf(submission_id);
@@ -51,26 +64,15 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
       );
 
       // --- START: PDF Download Logic ---
-
-      // 1. Create a blob from the response data
       const file = new Blob([response.data], { type: 'application/pdf' });
-
-      // 2. Create a temporary URL for the blob
       const fileURL = URL.createObjectURL(file);
-
-      // 3. Create a temporary anchor element and set the download attribute
       const link = document.createElement('a');
       link.href = fileURL;
-      link.setAttribute('download', `submission-${submission_id}.pdf`); // Set the desired file name here
-
-      // 4. Append to the document, click it, and remove it
+      link.setAttribute('download', `submission-${submission_id}.pdf`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // 5. Clean up the temporary URL
       window.URL.revokeObjectURL(fileURL);
-
       // --- END: PDF Download Logic ---
 
     } catch (error) {
@@ -85,7 +87,7 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
   if (isMobile || isTablet) {
     return (
       <Stack spacing={2} sx={{ mt: 2 }}>
-        {data.map((item) => (
+        {items.map((item: DashboardItem) => (
           <Card key={item.template.id}>
             <CardContent>
               <Typography variant="h6" component="div" gutterBottom>
@@ -112,15 +114,12 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
                 </Typography>
               </Box>
             </CardContent>
-            
             <CardActions>
               {item.latest_submission && item.latest_submission.filled_pdf_url ? (
                 <Button
                   fullWidth
                   variant="outlined"
-                  startIcon={<DownloadIcon htmlColor="#f73b20" />}
-                  onClick={() => handleDownloadPdf(item.latest_submission.anvil_submission_eid)}
-                  disabled={loadingPdf === item.latest_submission.anvil_submission_eid}
+                  startIcon={<DownloadIcon htmlColor='#f73b20' />}
                   sx={{ 
                     color: '#f73b20', 
                     backgroundColor: '#f73b200d', 
@@ -130,12 +129,14 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
                       border: 'none'
                     }
                   }}
+                  onClick={() => handleDownloadPdf(item.latest_submission.anvil_submission_eid)}
+                  disabled={loadingPdf === item.latest_submission.anvil_submission_eid}
                 >
-                  {loadingPdf === item.latest_submission.anvil_submission_eid ? 'Loading...' : 'Download PDF'}
+                  {loadingPdf === item.latest_submission.anvil_submission_eid ? 'Loading...' : 'Download'}
                 </Button>
               ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                  No PDF available
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ width: '100%' }}>
+                  No PDF Available
                 </Typography>
               )}
             </CardActions>
@@ -157,7 +158,7 @@ export const TemplateTable = ({ data }: TemplateTableProps) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((item) => (
+          {items.map((item: DashboardItem) => (
             <TableRow key={item.template.id}>
               <TableCell>{item.template.title}</TableCell>
               <TableCell>{item.owner.email}</TableCell>

@@ -5,12 +5,13 @@ import {
   Paper, Typography, Box, Button, 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   IconButton, useTheme, useMediaQuery,
-  Card, CardContent, CardActions, Stack
+  Card, CardContent, CardActions, Stack, CircularProgress
 } from '@mui/material';
 import { 
   Visibility as VisibilityIcon,
   Upload as UploadIcon,
-  Description as DescriptionIcon
+  Description as DescriptionIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorFeedback } from '../components/ErrorFeedback';
@@ -18,9 +19,9 @@ import { ResponsiveContainer } from '../components/ResponsiveContainer';
 
 // Define a type for our template data, assuming it has these fields from the API
 interface Template {
-  id: string; // Or a unique identifier like anvil_template_eid
+  id: string;
   title: string;
-  filename: string;
+  description?: string;
   created_at: string;
 }
 
@@ -42,8 +43,10 @@ export const AgentDashboard = () => {
     setIsFetching(true);
     setFetchError('');
     try {
-      const response = await apiClient.get<Template[]>('/api/templates');
-      setTemplates(response.data);
+      const response = await apiClient.get('/api/templates');
+      // The API returns { templates: [...] }
+      const templatesData = response.data || [];
+      setTemplates(templatesData);
     } catch (error) {
       setFetchError('Failed to load templates. Please try refreshing the page.');
     } finally {
@@ -61,11 +64,32 @@ export const AgentDashboard = () => {
     fetchTemplates();
   };
 
+  const handleDownload = async (template: Template) => {
+    if (!template?.id) return;
+    try {
+      const response = await apiClient.get(`/api/templates/${template.id}/download`);
+      // Handle PDF download based on your API response
+      window.open(response.data.download_url, '_blank');
+    } catch (error) {
+      console.error('Failed to download template:', error);
+    }
+  };
+
+  const handleDelete = async (template: Template) => {
+    if (!template?.id) return;
+    try {
+      await apiClient.delete(`/api/templates/${template.id}`);
+      fetchTemplates(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete template:', error);
+    }
+  };
+
   const renderTemplatesList = () => {
     if (isFetching) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <Box sx={{ color: '#f73b20' }}>Loading...</Box>
+          <CircularProgress sx={{ color: '#f73b20' }} />
         </Box>
       );
     }
@@ -74,16 +98,16 @@ export const AgentDashboard = () => {
       return <ErrorFeedback error={fetchError} />;
     }
 
-    if (templates.length === 0) {
+    if (!templates || templates.length === 0) {
       return (
         <EmptyState
           title="No Templates Yet"
           description="Start by uploading your first template."
           icon={<DescriptionIcon sx={{ color: '#f73b20' }} />}
-          action={{
-            label: "Upload Template",
-            onClick: () => setIsModalOpen(true)
-          }}
+          // action={{
+          //   label: "Upload Template",
+          //   onClick: () => setIsModalOpen(true)
+          // }}
         />
       );
     }
@@ -91,14 +115,14 @@ export const AgentDashboard = () => {
     if (isMobile || isTablet) {
       return (
         <Stack spacing={2}>
-          {templates.map((template) => (
-            <Card key={template.id}>
+          {Array.isArray(templates) && templates.map((template) => (
+            <Card key={template?.id || Math.random()}>
               <CardContent>
                 <Typography variant="h6" component="div" noWrap>
-                  {template.title}
+                  {template?.title || 'Untitled Template'}
                 </Typography>
                 <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  {new Date(template.created_at).toLocaleDateString()}
+                  {template?.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown date'}
                 </Typography>
               </CardContent>
               <CardActions>
@@ -106,6 +130,7 @@ export const AgentDashboard = () => {
                   fullWidth
                   variant="outlined"
                   startIcon={<VisibilityIcon htmlColor="#f73b20" />}
+                  onClick={() => handleDownload(template)}
                   sx={{ 
                     color: '#f73b20', 
                     border: 'none', 
@@ -136,21 +161,22 @@ export const AgentDashboard = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {templates.map((template) => (
+            {Array.isArray(templates) && templates?.map((template) => (
               <TableRow
-                key={template.id}
+                key={template?.id || Math.random()}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 hover
               >
                 <TableCell component="th" scope="row">
-                  {template.title}
+                  {template?.title || 'Untitled Template'}
                 </TableCell>
                 <TableCell>
-                  {new Date(template.created_at).toLocaleDateString()}
+                  {template?.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown date'}
                 </TableCell>
                 <TableCell align="right">
                   <IconButton 
                     aria-label="view template"
+                    onClick={() => handleDownload(template)}
                     sx={{ 
                       color: '#f73b20',
                       '&:hover': {
@@ -159,6 +185,18 @@ export const AgentDashboard = () => {
                     }}
                   >
                     <VisibilityIcon />
+                  </IconButton>
+                  <IconButton 
+                    aria-label="delete template"
+                    onClick={() => handleDelete(template)}
+                    sx={{ 
+                      color: '#f73b20',
+                      '&:hover': {
+                        backgroundColor: '#f73b200d'
+                      }
+                    }}
+                  >
+                    <DeleteIcon />
                   </IconButton>
                 </TableCell>
               </TableRow>
