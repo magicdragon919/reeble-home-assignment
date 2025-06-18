@@ -2,7 +2,7 @@ from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from typing import List
@@ -11,8 +11,9 @@ import io
 
 from . import crud, models, schemas, deps, security
 from .database import engine, SessionLocal
-from .anvil_service import *
-from .graphql_service import *
+from .service.anvil_service import *
+from .service.graphql_service import *
+from .service.file_service import *
 
 # --- FastAPI App Initialization ---
 
@@ -105,9 +106,9 @@ async def upload_template(
     file_content = await file.read()
 
     response = create_cast(file_content=file_content, filename=file.filename)
-    print(response["data"]["createCast"]["eid"])
     castEid = response["data"]["createCast"]["eid"]
-    return crud.create_template(db, "Test form", current_user.id, castEid)
+
+    return crud.create_template(db, file.filename, current_user.id, castEid)
 
 @app.get("/api/templates", tags=["Agent"])
 def list_available_templates(
@@ -116,7 +117,6 @@ def list_available_templates(
 ):
     """Agent-only endpoint to get a list of their templates."""
     return crud.get_templates_by_user(db, current_user.id)
-
 
 
 # --- Buyer Flow ---
@@ -171,6 +171,8 @@ def submit_filled_form(
     response = create_etch_packet(file_content=fill_response, current_user=current_user)
 
     submission = crud.create_submission(db=db, template_id=template_id, buyer_id=current_user.id, anvil_submission_eid=response["createEtchPacket"]["eid"], filled_pdf_url=response["createEtchPacket"]["detailsURL"])
+    filename = f"{response['createEtchPacket']['eid']}.pdf"
+    upload_pdf(filename=filename, file_content=fill_response)
     return {"message": "Submission successful!", "submission": submission }
 
     # except Exception as e:
@@ -235,12 +237,6 @@ async def download_submission_pdf(
     if not (is_buyer or is_owner or is_admin):
         raise HTTPException(status_code=403, detail="You are not authorized to download this file")
 
-    pdf_bytes = download_filled_pdf(weld_data_eid=submission.anvil_submission_eid)
+    pdf_path = get_pdf_path(submission_eid=submission.anvil_submission_eid)
 
-    return StreamingResponse(
-        io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": f"attachment; filename=submission_{submission_id}.pdf"
-        }
-    )
+    return FileResponse(path=pdf_path, media_type='application/pdf', filename=f"{submission.anvil_submission_eid}.pdf")

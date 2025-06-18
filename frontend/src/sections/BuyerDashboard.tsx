@@ -3,9 +3,11 @@ import apiClient from '../api/apiClient';
 import { CreateSubmissionModal } from '../components/CreateSubmissionModal'; // Import the new modal
 import {
   Paper, Typography, Box, Button, CircularProgress, Alert,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Dialog, DialogContent, DialogTitle
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { Visibility as VisibilityIcon, Close as CloseIcon } from '@mui/icons-material';
+import { PdfViewer } from '../components/PdfViewer';
 
 // Define a type for a submission
 interface Submission {
@@ -20,6 +22,35 @@ export const BuyerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState<string | null>(null);
+
+  const handleViewPdf = async (submission_id: string) => {
+    setLoadingPdf(submission_id);
+    try {
+      const response = await apiClient.get(
+        `/api/submissions/${submission_id}/download`,
+        {
+          responseType: 'blob'
+        }
+      );
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      console.log(fileURL);
+      setPdfUrl(fileURL);
+    } catch (error) {
+      console.error("Error fetching the PDF", error);
+    } finally {
+      setLoadingPdf(null);
+    }
+  };
+
+  const handleClosePdf = () => {
+    if (pdfUrl) {
+      window.URL.revokeObjectURL(pdfUrl);
+    }
+    setPdfUrl(null);
+  };
 
   // Function to fetch the list of previous submissions
   const fetchSubmissions = async () => {
@@ -86,14 +117,13 @@ export const BuyerDashboard = () => {
                   <TableCell align='right'>
                     {sub.filled_pdf_url ? (
                       <Button
-                        component="a"
-                        href={sub.filled_pdf_url}
-                        target="_blank"
                         rel="noopener noreferrer"
                         variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon htmlColor='#f73b20' />}
-                        sx={{color: '#f73b20', border: 'none', backgroundColor: '#f73b200d'}}
+                        sx={{ color: '#f73b20', border: 'none', backgroundColor: '#f73b200d' }}
+                        onClick={() => handleViewPdf(sub.anvil_submission_eid)}
+                        disabled={loadingPdf === sub.anvil_submission_eid}
                       >
                         View
                       </Button>
@@ -116,6 +146,25 @@ export const BuyerDashboard = () => {
         onClose={() => setIsModalOpen(false)}
         onSubmitSuccess={handleSubmitSuccess}
       />
+
+      {/* --- PDF MODAL DIALOG --- */}
+      <Dialog
+        open={!!pdfUrl}
+        onClose={handleClosePdf}
+        fullWidth={true}
+        maxWidth="lg"
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          PDF Preview
+          <Button onClick={handleClosePdf} startIcon={<CloseIcon />}>
+            Close
+          </Button>
+        </DialogTitle>
+        <DialogContent dividers>
+          {/* We only render the viewer if the URL exists */}
+          {pdfUrl && <PdfViewer pdfUrl={pdfUrl} />}
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 };

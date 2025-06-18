@@ -22,6 +22,9 @@ pyvenv.cfg
 # SQLite (if used for local dev)
 *.sqlite3
 
+# Storage
+upload/
+
 # IDE configurations
 .vscode/
 .idea/

@@ -32,6 +32,9 @@ def get_templates_by_user(db: Session, user_id: int):
 def get_submissions_by_user(db: Session, user_id: int):
     return db.query(models.Submission).options(joinedload(models.Submission.template)).filter(models.Submission.buyer_id == user_id).all()
 
+def get_submission_by_id(db: Session, submission_id: str):
+    return db.query(models.Submission).filter(models.Submission.anvil_submission_eid == submission_id).first()
+
 def get_template(db: Session, template_id: int):
     return db.query(models.PDFTemplate).filter(models.PDFTemplate.anvil_template_eid == template_id).first()
 

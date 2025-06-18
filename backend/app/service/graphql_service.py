@@ -27,6 +27,29 @@ def get_auth_header(api_key: str) -> dict:
         "Content-Type": "application/json",
     }
 
+def execute_graql_query(query, variables):
+    payload = {
+        "query": query,
+        "variables": variables
+    }
+
+    response = requests.post(
+        ANVIL_GRAPHQL_URL,
+        headers=get_auth_header(ANVIL_API_KEY),
+        json=payload
+    )
+
+    response.raise_for_status()  # Raises an exception for bad status codes (4xx or 5xx)
+        
+    response_data = response.json()
+    
+    # Check for GraphQL-specific errors returned in the response body
+    if 'errors' in response_data:
+        print("GraphQL Errors:")
+    else:
+        print("Successfully received data:")
+        # Use json.dumps for pretty-printing the result
+    return response_data
 
 def create_cast(file_content, filename: str):
     file_content = base64.b64encode(file_content).decode('utf-8')
@@ -91,25 +114,55 @@ def create_cast(file_content, filename: str):
         "detectBoxesAdvanced": True,
         "aliasIds": {}
     }
+    cast_data = execute_graql_query(query=query, variables=variables)
 
-    payload = {
-        "query": query,
-        "variables": variables
+    create_cast_data = cast_data['data']['createCast']
+
+    publish_cast(create_cast_data['eid'], create_cast_data['title'])
+
+    return cast_data
+
+  
+def publish_cast(eid: str, title: str, description: str = ""):
+    query = """
+        mutation publishCast(
+        $eid: String!,
+        $title: String!,
+        $description: String
+        ) {
+        publishCast(
+            eid: $eid,
+            title: $title,
+            description: $description
+        ) {
+            versionNumber
+            versionId
+            latestDraftVersionNumber
+            publishedNumber
+            publishedAt
+            hasUnpublishedChanges
+            hasBeenPublished
+            eid
+            type
+            name
+            title
+            isTemplate
+            exampleData
+            allowedAliasIds
+            fieldInfo
+            config
+            createdAt
+            updatedAt
+            archivedAt
+        }
     }
-    response = requests.post(
-        ANVIL_GRAPHQL_URL,
-        headers=get_auth_header(ANVIL_API_KEY),
-        json=payload
-    )
+    """
 
-    response.raise_for_status()  # Raises an exception for bad status codes (4xx or 5xx)
-        
-    response_data = response.json()
+    variables = {
+        "eid": eid,
+        "title": title,
+        "description": description
+    }
     
-    # Check for GraphQL-specific errors returned in the response body
-    if 'errors' in response_data:
-        print("GraphQL Errors:")
-    else:
-        print("Successfully received data:")
-        # Use json.dumps for pretty-printing the result
-    return response_data
+    return execute_graql_query(query=query, variables=variables)
+

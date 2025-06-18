@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import List, Optional
 
 class Token(BaseModel):
@@ -41,3 +41,15 @@ class PDFTemplate(PDFTemplateBase):
 class AdminDashboardTemplate(PDFTemplate):
     owner: User
     latest_submission: Optional[Submission] = None
+
+class PdfBase64Request(BaseModel):
+    filename: str
+    pdf_content_base64: str
+
+    @validator('filename')
+    def validate_filename(cls, v):
+        if '..' in v or '/' in v or '\\' in v:
+            raise ValueError('Invalid filename.')
+        if not v.lower().endswith('.pdf'):
+            raise ValueError('Filename must have a .pdf extension.')
+        return v

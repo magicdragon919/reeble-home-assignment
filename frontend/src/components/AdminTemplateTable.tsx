@@ -2,10 +2,57 @@ import {
   Paper, Typography, TableContainer, Table, TableHead, TableRow,
   TableCell, TableBody, Button
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import { Download as DownloadIcon } from '@mui/icons-material';
+import apiClient from '../api/apiClient';
+import { useState } from 'react';
+// The Dialog related imports and PdfViewer are no longer needed
 
 export const TemplateTable = ({ data }: any) => {
-  console.log("Templates: ", data);
+  // We only need the loading state now. The pdfUrl state is removed.
+  const [loadingPdf, setLoadingPdf] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (submission_id: string) => {
+    setLoadingPdf(submission_id);
+    try {
+      const response = await apiClient.get(
+        `/api/submissions/${submission_id}/download`,
+        {
+          responseType: 'blob'
+        }
+      );
+
+      // --- START: PDF Download Logic ---
+
+      // 1. Create a blob from the response data
+      const file = new Blob([response.data], { type: 'application/pdf' });
+
+      // 2. Create a temporary URL for the blob
+      const fileURL = URL.createObjectURL(file);
+
+      // 3. Create a temporary anchor element and set the download attribute
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.setAttribute('download', `submission-${submission_id}.pdf`); // Set the desired file name here
+
+      // 4. Append to the document, click it, and remove it
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // 5. Clean up the temporary URL
+      window.URL.revokeObjectURL(fileURL);
+
+      // --- END: PDF Download Logic ---
+
+    } catch (error) {
+      console.error("Error fetching the PDF", error);
+    } finally {
+      setLoadingPdf(null);
+    }
+  };
+
+  // The handleClosePdf function is no longer needed.
+
   return (
     <>
       {data.length === 0 ? (
@@ -18,7 +65,7 @@ export const TemplateTable = ({ data }: any) => {
                 <TableCell sx={{ fontWeight: 'bold' }}>Template Name</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Owner (Agent)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Latest Submission Created</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>View</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Download PDF</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -33,13 +80,12 @@ export const TemplateTable = ({ data }: any) => {
                     {item.latest_submission?.filled_pdf_url ? (
                       <Button
                         variant="outlined"
-                        startIcon={<VisibilityIcon htmlColor='#f73b20' />}
-                        href={item.latest_submission.filled_pdf_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        startIcon={<DownloadIcon htmlColor='#f73b20' />}
                         sx={{ color: '#f73b20', backgroundColor: '#f73b200d', border: 'none' }}
+                        onClick={() => handleDownloadPdf(item.latest_submission.anvil_submission_eid)}
+                        disabled={loadingPdf === item.latest_submission.anvil_submission_eid}
                       >
-                        PDF
+                        {loadingPdf === item.latest_submission.anvil_submission_eid ? 'Loading...' : 'PDF'}
                       </Button>
                     ) : (
                       'No submission'
@@ -51,7 +97,8 @@ export const TemplateTable = ({ data }: any) => {
           </Table>
         </TableContainer>
       )}
-    </>
-  )
-}
 
+      {/* The entire Dialog component has been removed from here */}
+    </>
+  );
+};

@@ -70,6 +70,8 @@ def create_etch_packet(file_content, current_user, file_name = None, file_type =
 def submit_filled_pdf(submission_data, db_template):
     payload = {
         "title": "Filled Document from WebForm",
+        "fontSize": 14,
+        "textColor": "#000000",
         "data": submission_data
     }
     fill_response = anvil.fill_pdf(
@@ -79,6 +81,14 @@ def submit_filled_pdf(submission_data, db_template):
 
     return fill_response
 
+def download_filled_pdf(weld_data_eid: str): 
+    pdf_bytes = anvil.download_documents(weld_data_eid)
+    return pdf_bytes
+
 def get_cast(anvil_template_eid):
     cast_data = anvil.get_cast(eid=anvil_template_eid)
     return cast_data
+
+def get_casts():
+    cast_datas = anvil.get_casts()
+    return cast_datas
