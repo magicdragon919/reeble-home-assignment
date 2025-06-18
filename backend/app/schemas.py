@@ -1,12 +1,6 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
+from datetime import datetime
 
 class UserBase(BaseModel):
     email: str
@@ -17,26 +11,40 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    class Config:
-        orm_mode = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
-class Submission(BaseModel):
-    id: int
-    buyer_id: int
-    filled_pdf_url: Optional[str] = None
-    class Config:
-        orm_mode = True
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    role: Optional[str] = None
 
 class PDFTemplateBase(BaseModel):
     title: str
+    anvil_template_eid: str
 
 class PDFTemplate(PDFTemplateBase):
     id: int
-    title: str
     owner_id: int
-    anvil_template_eid: str
-    class Config:
-        orm_mode = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class SubmissionBase(BaseModel):
+    template_id: str
+    anvil_submission_eid: str
+    filled_pdf_url: Optional[str] = None
+
+class Submission(SubmissionBase):
+    id: int
+    buyer_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class AdminDashboardTemplate(PDFTemplate):
     owner: User

@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from typing import List
+from contextlib import asynccontextmanager
 
 import io
 
@@ -23,10 +24,34 @@ load_dotenv()
 # Create database tables based on SQLAlchemy models
 models.Base.metadata.create_all(bind=engine)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Seed the database with default users on application startup."""
+    db = SessionLocal()
+    try:
+        # A default password for all seeded users for easy testing.
+        default_password = "password123" 
+        
+        users = [
+            schemas.UserCreate(email="agent@test.io", role="Agent", password=default_password),
+            schemas.UserCreate(email="buyer@test.io", role="Buyer", password=default_password),
+            schemas.UserCreate(email="admin@test.io", role="Admin", password=default_password),
+        ]
+        
+        for user_in in users:
+            user = crud.get_user_by_email(db, email=user_in.email)
+            if not user:
+                crud.create_user(db, user_in)
+                print(f"Created user: {user_in.email} with password: {default_password}")
+    finally:
+        db.close()
+    yield
+
 app = FastAPI(
     title="Reeble Smart PDF Workflow API",
     description="API for managing PDF templates and submissions with JWT authentication.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS (Cross-Origin Resource Sharing) Middleware
@@ -38,27 +63,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def startup_event():
-    """Seed the database with default users on application startup."""
-    db = SessionLocal()
-    # A default password for all seeded users for easy testing.
-    default_password = "password123" 
-    
-    users = [
-        schemas.UserCreate(email="agent@test.io", role="Agent", password=default_password),
-        schemas.UserCreate(email="buyer@test.io", role="Buyer", password=default_password),
-        schemas.UserCreate(email="admin@test.io", role="Admin", password=default_password),
-    ]
-    
-    for user_in in users:
-        user = crud.get_user_by_email(db, email=user_in.email)
-        if not user:
-            crud.create_user(db, user_in)
-            print(f"Created user: {user_in.email} with password: {default_password}")
-    db.close()
-
 
 # --- Authentication Endpoints ---
 
