@@ -76,7 +76,19 @@ export const Login = () => {
             fullWidth
             variant="contained"
             disabled={isLoading}
-            sx={{ mt: 3, mb: 2, py: 1.5, backgroundColor: "#f73b20" }}
+            sx={{ 
+              mt: 3, 
+              mb: 2, 
+              py: 1.5, 
+              backgroundColor: "#f73b20",
+              '&:disabled': {
+                backgroundColor: "#f73b20",
+                opacity: 0.7
+              },
+              '&:hover': {
+                backgroundColor: "#f73b20"
+              }
+            }}
           >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
           </Button>
