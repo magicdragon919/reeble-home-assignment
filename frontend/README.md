@@ -16,9 +16,6 @@ npm run dev
 
 3. Run tests:
 ```bash
-# Unit tests
-npm test
-
 # E2E tests (requires dev server running)
 npm run cypress
 ```

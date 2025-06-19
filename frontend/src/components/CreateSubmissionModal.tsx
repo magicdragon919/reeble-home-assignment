@@ -14,40 +14,63 @@ const renderField = (field: AnvilField, formData: Record<string, any>, handleInp
   const { id, name, type } = field;
   const value = formData[id] || '';
 
+  const commonTextFieldProps = {
+    key: id,
+    name: id,
+    label: name,
+    value: value,
+    onChange: handleInputChange,
+    fullWidth: true,
+    variant: "outlined" as const,
+    sx: {
+      '& .MuiOutlinedInput-root': {
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#f73b20',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#f73b20',
+        }
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: '#f73b20',
+      }
+    }
+  };
+
   switch (type) {
     case 'shortText': case 'fullName': case 'usAddress':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} />;
+      return <TextField {...commonTextFieldProps} />;
     case 'longText': case 'textWrap':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} multiline rows={4} />;
+      return <TextField {...commonTextFieldProps} multiline rows={4} />;
     case 'date':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="date" InputLabelProps={{ shrink: true }} />;
+      return <TextField {...commonTextFieldProps} type="date" InputLabelProps={{ shrink: true }} />;
     case 'email':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="email" />;
+      return <TextField {...commonTextFieldProps} type="email" />;
     case 'phone':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="tel" />;
+      return <TextField {...commonTextFieldProps} type="tel" />;
     case 'number':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" />;
+      return <TextField {...commonTextFieldProps} type="number" />;
     case 'dollar':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />;
+      return <TextField {...commonTextFieldProps} type="number" InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />;
     case 'percent':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} type="number" InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }} />;
+      return <TextField {...commonTextFieldProps} type="number" InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }} />;
     case 'charList':
-      return <TextField key={id} name={id} label={name} value={value} onChange={handleInputChange} fullWidth={true} inputProps={{ style: { letterSpacing: '0.5em', fontFamily: 'monospace' } }} />;
+      return <TextField {...commonTextFieldProps} inputProps={{ style: { letterSpacing: '0.5em', fontFamily: 'monospace' } }} />;
     case 'checkbox':
-      return <FormControlLabel key={id} control={<Checkbox name={id} checked={!!value} onChange={handleInputChange} />} label={name} />;
+      return <FormControlLabel key={id} control={<Checkbox name={id} checked={!!value} onChange={handleInputChange} sx={{ '&.Mui-checked': { color: '#f73b20' } }} />} label={name} />;
     case 'radioGroup':
       return (
         <FormControl key={id} component="fieldset" fullWidth={true}>
           <FormLabel component="legend">{name}</FormLabel>
           <RadioGroup row name={id} value={value} onChange={handleInputChange}>
-            <FormControlLabel value="option1" control={<Radio />} label="Option 1" />
-            <FormControlLabel value="option2" control={<Radio />} label="Option 2" />
-            <FormControlLabel value="option3" control={<Radio />} label="Option 3" />
+            <FormControlLabel value="option1" control={<Radio sx={{ '&.Mui-checked': { color: '#f73b20' } }} />} label="Option 1" />
+            <FormControlLabel value="option2" control={<Radio sx={{ '&.Mui-checked': { color: '#f73b20' } }} />} label="Option 2" />
+            <FormControlLabel value="option3" control={<Radio sx={{ '&.Mui-checked': { color: '#f73b20' } }} />} label="Option 3" />
           </RadioGroup>
         </FormControl>
       );
     default:
-      return <TextField key={id} name={id} label={`${name} (type: ${type})`} value={value} fullWidth onChange={handleInputChange} />;
+      return <TextField {...commonTextFieldProps} label={`${name} (type: ${type})`} />;
   }
 };
 
@@ -137,23 +160,49 @@ export const CreateSubmissionModal = ({ open, onClose, onSubmitSuccess }: Create
       <DialogTitle>Fill New Form</DialogTitle>
       <DialogContent>
         {/* All the form rendering logic now lives here */}
-        {isLoadingTemplates ? (<CircularProgress />) : (
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="template-select-label">Select a Form</InputLabel>
-            <Select labelId="template-select-label" value={selectedTemplateId} label="Select a Form" onChange={handleTemplateChange}>
-              {Array.isArray(templates) && templates.map((template) => (<MenuItem key={template.anvil_template_eid} value={template.anvil_template_eid}>{template.title}</MenuItem>))}
-            </Select>
-          </FormControl>
-        )}
-
-        {isLoadingForm && <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}><CircularProgress /></Box>}
-
-        {fields.length > 0 && !isLoadingForm && (
-          <Box component="form" id="fill-form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-            {fields.map((field) => (
-              <Box key={field.id} sx={{ mb: 3 }}>{renderField(field, formData, handleInputChange)}</Box>
-            ))}
+        {isLoadingTemplates ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+            <CircularProgress sx={{ color: '#f73b20' }} />
           </Box>
+        ) : (
+          <>
+            <FormControl fullWidth margin="normal">
+              <InputLabel id="template-select-label">Select a Form</InputLabel>
+              <Select labelId="template-select-label" value={selectedTemplateId} label="Select a Form" onChange={handleTemplateChange}>
+                {Array.isArray(templates) && templates.map((template) => (<MenuItem key={template.anvil_template_eid} value={template.anvil_template_eid}>{template.title}</MenuItem>))}
+              </Select>
+            </FormControl>
+
+            {isLoadingForm && (
+              <Box sx={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                right: 0, 
+                bottom: 0, 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                zIndex: 1
+              }}>
+                <CircularProgress sx={{ color: '#f73b20' }} />
+              </Box>
+            )}
+
+            {fields.length > 0 && (
+              <Box component="form" id="fill-form" onSubmit={handleSubmit} sx={{ 
+                mt: 3, 
+                position: 'relative',
+                opacity: isLoadingForm ? 0.5 : 1,
+                transition: 'opacity 0.3s ease'
+              }}>
+                {fields.map((field) => (
+                  <Box key={field.id} sx={{ mb: 3 }}>{renderField(field, formData, handleInputChange)}</Box>
+                ))}
+              </Box>
+            )}
+          </>
         )}
 
         {feedback && <Alert severity={feedback.severity} sx={{ mt: 3 }}>{feedback.message}</Alert>}
@@ -165,9 +214,18 @@ export const CreateSubmissionModal = ({ open, onClose, onSubmitSuccess }: Create
           form="fill-form" 
           variant="contained" 
           disabled={isSubmitting || !selectedTemplateId || fields.length === 0}
-          sx={{ backgroundColor: '#f73b20f0'}}
+          sx={{ 
+            backgroundColor: '#f73b20f0',
+            '&:disabled': {
+              backgroundColor: '#f73b20f0',
+              opacity: 0.7
+            },
+            '&:hover': {
+              backgroundColor: '#f73b20f0'
+            }
+          }}
         >
-          {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Form'}
+          {isSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit Form'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -70,11 +70,14 @@ export const UploadTemplateModal = ({ open, onClose, onUploadSuccess }: UploadTe
           }}
         >
           <input {...getInputProps()} />
-          <UploadFileIcon sx={{ fontSize: 48, color: 'grey.500', mb: 2 }} />
+          
           {isLoading ? (
-            <CircularProgress />
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="120px">
+              <CircularProgress sx={{ color: '#f73b20' }} />
+            </Box>
           ) : (
             <>
+              <UploadFileIcon sx={{ fontSize: 48, color: 'grey.500', mb: 2 }} />
               <Typography>Drag & drop a PDF here, or click to select a file</Typography>
               <Typography variant="body2" color="text.secondary">PDF files only</Typography>
             </>

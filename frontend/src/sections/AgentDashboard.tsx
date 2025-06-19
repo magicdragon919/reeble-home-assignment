@@ -125,25 +125,6 @@ export const AgentDashboard = () => {
                   {template?.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown date'}
                 </Typography>
               </CardContent>
-              <CardActions>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<VisibilityIcon htmlColor="#f73b20" />}
-                  onClick={() => handleDownload(template)}
-                  sx={{ 
-                    color: '#f73b20', 
-                    border: 'none', 
-                    backgroundColor: '#f73b200d',
-                    '&:hover': {
-                      backgroundColor: '#f73b201a',
-                      border: 'none'
-                    }
-                  }}
-                >
-                  View Template
-                </Button>
-              </CardActions>
             </Card>
           ))}
         </Stack>
@@ -157,7 +138,6 @@ export const AgentDashboard = () => {
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>Template Title</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Date Uploaded</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -172,32 +152,6 @@ export const AgentDashboard = () => {
                 </TableCell>
                 <TableCell>
                   {template?.created_at ? new Date(template.created_at).toLocaleDateString() : 'Unknown date'}
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton 
-                    aria-label="view template"
-                    onClick={() => handleDownload(template)}
-                    sx={{ 
-                      color: '#f73b20',
-                      '&:hover': {
-                        backgroundColor: '#f73b200d'
-                      }
-                    }}
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-                  <IconButton 
-                    aria-label="delete template"
-                    onClick={() => handleDelete(template)}
-                    sx={{ 
-                      color: '#f73b20',
-                      '&:hover': {
-                        backgroundColor: '#f73b200d'
-                      }
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

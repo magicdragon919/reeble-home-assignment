@@ -107,10 +107,6 @@ export const BuyerDashboard = () => {
           title="No Submissions Yet"
           description="Start by filling out a new form to submit your first document."
           icon={<DescriptionIcon sx={{ color: '#f73b20' }} />}
-          action={{
-            label: "Fill New Form",
-            onClick: () => setIsModalOpen(true)
-          }}
         />
       );
     }
