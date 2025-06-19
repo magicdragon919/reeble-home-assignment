@@ -173,10 +173,11 @@ def submit_filled_form(
     fill_response = submit_filled_pdf(submission_data, db_template)
     
     response = create_etch_packet(file_content=fill_response, current_user=current_user)
-
-    submission = crud.create_submission(db=db, template_id=template_id, buyer_id=current_user.id, anvil_submission_eid=response["createEtchPacket"]["eid"], filled_pdf_url=response["createEtchPacket"]["detailsURL"])
+    
     filename = f"{response['createEtchPacket']['eid']}.pdf"
     upload_pdf(filename=filename, file_content=fill_response)
+    submission = crud.create_submission(db=db, template_id=template_id, buyer_id=current_user.id, anvil_submission_eid=response["createEtchPacket"]["eid"], filled_pdf_url=response["createEtchPacket"]["detailsURL"])
+    
     return {"message": "Submission successful!", "submission": submission }
 
     # except Exception as e:
