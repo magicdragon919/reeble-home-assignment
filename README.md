@@ -23,7 +23,7 @@ The easiest way to run the project is using Docker and Docker Compose.
 
 1. **Clone the repository** (if you haven't already):
    ```bash
-   git clone <repository-url>
+   git clone [<repository-url>](https://github.com/magicdragon919/reeble-home-assignment)
    cd reeble_assignment
    ```
 
@@ -71,8 +71,6 @@ docker-compose down -v --rmi all
 - **Admin**: admin@test.io / password123
 
 **Note**: Change these passwords in production!
-
-For detailed Docker documentation, see [DOCKER_README.md](./DOCKER_README.md).
 
 ## Installation (Manual Setup)
 
