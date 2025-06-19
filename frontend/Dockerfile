@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Accept build arg for Vite (only for build time)
+ARG VITE_API_URL
 
 # Build the application
 RUN npm run build

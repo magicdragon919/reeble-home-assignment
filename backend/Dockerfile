@@ -9,6 +9,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
+# Accept build arguments for environment variables (only for build time)
+ARG ANVIL_API_KEY
+ARG ANVIL_ORG_EID
+ARG PDF_STORAGE_PATH
+
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

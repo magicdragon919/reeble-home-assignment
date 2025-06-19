@@ -9,10 +9,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./app.db
-      - SECRET_KEY=your-secret-key-here
       - ANVIL_API_KEY=${ANVIL_API_KEY:-your-anvil-api-key}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ANVIL_ORG_EID=${ANVIL_ORG_EID:-your-anvil-org-eid}
+      - PDF_STORAGE_PATH=${PDF_STORAGE_PATH:-your-storage-path}
     volumes:
       - ./backend/upload:/app/upload
       - backend_data:/app
@@ -24,6 +23,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
     container_name: reeble-frontend
     ports:
       - "3000:80"
